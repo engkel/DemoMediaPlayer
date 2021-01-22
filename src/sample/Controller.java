@@ -1,32 +1,32 @@
 package sample;
 
-import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-import javafx.stage.FileChooser;
-import javafx.scene.control.ListView;
-import javafx.scene.media.MediaView;
-import java.util.ArrayList;
-import java.io.File;
-import java.net.URL;
-import java.util.ResourceBundle;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
+import javafx.stage.FileChooser;
 import javafx.util.Duration;
+
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.ResourceBundle;
 
 public class Controller implements Initializable{
 
-    //HANDLERS FOR JAVAFX
 
     @FXML
     private ListView<String> ListViewAllSongs;
@@ -46,46 +46,86 @@ public class Controller implements Initializable{
     private Slider VolumeSlider;
 
     private String path;
+
     private MediaPlayer mediaPlayer;
     private Media media;
 
 
+    int lastSelectedPlaylistIndex;
+    int lastSelectedSongInPlaylistIndex; //requires a listener. Don't know how to make them work.
+    int lastSelectedSongInLibraryIndex;  //ibid.
+
+    int playlistsNewAndDeletedCounter = 0;
+
+    boolean shuffle = false;
+
+    @FXML
+    Button Play;
+
     public void HandlePlay(ActionEvent event) {
+        PlayMusic();
+    }
+
+
+    @FXML
+    Button PlayTheChosen;
+
+    public void HandlePlayTheChosen(ActionEvent event){
         mediaPlayer.play();
         HandleProgressBar();
         HandleVolumeSlider();
-
     }
 
-    public void HandleStop() {
+    @FXML
+    Button Shuffle;
+
+    @FXML
+    Button Stop;
+
+    public void HandleStop(ActionEvent event) {
         mediaPlayer.stop();
     }
+
+    @FXML
+    Button Pause;
 
     public void HandlePause(ActionEvent event) {
         mediaPlayer.pause();
     }
 
-    public void HandleNext() {  //MISSING
+
+    @FXML
+    Button Next;
+
+    public void HandleNext(ActionEvent event) {  //MISSING
     System.out.println("It works...");
     }
 
-    public void HandlePrevious() {  //MISSING
+    @FXML
+    Button Previous;
+
+    public void HandlePrevious(ActionEvent event) {  //MISSING
         System.out.println("It works.... ");
     }
 
-    public void HandleReplay() {  //MISSING
+    @FXML
+    Button Replay;
+
+    public void HandleReplay(ActionEvent event) {  //MISSING
         System.out.println("It works.... ");
     }
 
-    public void HandleSearch() { //MISSING
-        Search();   //?
-        System.out.println("Search completed");
+    @FXML
+    Button Search;
+
+    public void HandleSearch(ActionEvent event) {
+        Search();
     }
 
     @FXML
     Button NewPlaylistButton;
 
-    @FXML public void HandleNewPlaylist() {
+    @FXML public void HandleNewPlaylist(ActionEvent event) {
         NewPlaylist();
     }
 
@@ -113,12 +153,78 @@ public class Controller implements Initializable{
     @FXML
     TextField PlaylistName = new TextField();
 
+    @FXML
+    TextField EnterSearch = new TextField();
 
     //FUNCTIONS
 
-    public void Search() {
-        //search happens here.
+    /**
+     * Plays the selected song in playlist or song in library
+     */
+    public void PlayMusic(){
+        //selected index from listviews - either a song from playlist or a song from library (Plays only from library now)
+        int selectedIndex = ListViewAllSongs.getSelectionModel().getSelectedIndex()+1;
+        DB.selectSQL("SELECT fld_Path FROM tbl_Songs WHERE fld_SongId="+selectedIndex+"");
+        String path = DB.getData();
+        System.out.print(path);
+        // Build the path to the location of the media file
+
+        // Create new Media object (the actual media content)
+        String pathC = new File("src/sample/media/"+path+"").getAbsolutePath();
+        // Create new Media object (the actual media content)
+        media = new Media(new File(pathC).toURI().toString());
+        // Create new MediaPlayer and attach the media to be played
+        mediaPlayer = new MediaPlayer(media);
+        //
+        //mediaV.setMediaPlayer(mp); This Isn't video so shouldn't be used (?)
+        // mp.setAutoPlay(true);
+        // If autoplay is turned of the method play(), stop(), pause() etc controls how/when medias are played
+        //mediaPlayer.setAutoPlay(false);
+
+        mediaPlayer.play();
+        //HandleProgressBar();   //doesn't work here
+        //HandleVolumeSlider();   //doesn't work here
     }
+
+
+    public void Search() { //not finished
+    /*
+        String searchString = EnterSearch.getText();
+        // use contains() to check if the library arraylist contains the search string
+        boolean ans = SongNameList.contains(""+searchString+"");
+
+		if (ans){
+			System.out.println("Song found.");
+            int index = SongNameList.indexOf(""+searchString+"");
+            if(index == -1)
+            {System.out.println("ArrayList does not contain search string"); }
+            else{
+                //popup
+                // new arraylist SearchResults = searchResults
+                //SearchResultsListview
+
+                //vælg søgeresultat på popuplisten
+
+                FxTimer.runLater(Duration.ofMillis(250);
+                        popup væk
+                        listView.scrollTo(N);
+                listView.getFocusModel().focus(N);
+                listView.getSelectionModel().select(N);
+
+                //() -> listView.getSelectionModel().select(selectedItem));
+                System.out.println("Search completed");
+
+            }else {
+                System.out.println("The list does not contain search string");
+                //Popup with that message
+                //wait
+                //popup disappear
+            }
+
+        }
+
+     */
+     }
 
 
     /**
@@ -130,10 +236,12 @@ public class Controller implements Initializable{
             System.out.println("Invalid name. Playlist not created."); }
         else {
         System.out.println("playlist named "+playlistName+" created.");
-        DB.selectSQL("INSERT INTO tbl_Playlists (fld_Name) VALUES ('"+playlistName+"');");
-        // The entry is made successfully in the table in the DB but I still get an error in console:
+        DB.selectSQL("INSERT INTO tbl_Playlists (fld_Name) VALUES ('"+playlistName+"')");
+          // The entry is made successfully in the table in the DB but I still get an error in console:
         // "Error in the sql parameter, please test this in SQLServer first
         //The statement did not return a result set."
+        updatePlaylistsInListview();
+        updatePlaylistContentsInListview();
         }
     }
 
@@ -142,34 +250,42 @@ public class Controller implements Initializable{
      */
     public void DeletePlaylist(){
         //The selected in the Listview saved in a variable
-        int PlaylistIdSelectedForDeletion = ListViewPlayListNames.getSelectionModel().getSelectedIndex();//getSelectedItem or getSelectedIndex?
+        int PlaylistIdSelectedForDeletion = ListViewPlayListNames.getSelectionModel().getSelectedIndex()+1+playlistsNewAndDeletedCounter;
+        System.out.println(PlaylistIdSelectedForDeletion);
         //that value is then used for an sql query to delete the correct playlist and playlist contents.
-        DB.selectSQL("DELETE FROM tbl_Playlists WHERE fld_playlistId='"+PlaylistIdSelectedForDeletion+"'");
+        DB.selectSQL("DELETE FROM tbl_Playlists WHERE fld_playlistId="+PlaylistIdSelectedForDeletion+"");
         DB.selectSQL("DELETE FROM tbl_PlaylistContents WHERE fld_PlaylistId='"+PlaylistIdSelectedForDeletion+"'");
+        updatePlaylistsInListview();
+        updatePlaylistContentsInListview();
+        playlistsNewAndDeletedCounter++;
         System.out.println("Playlist has been deleted");
     }
-
 
     /**
      * Function that adds a selected song in the library listview to the selected playlist
      */
     public void AddSongToPlaylist() {
         //get the selected playlist in ListViewPlayListNames to know which playlist the song is supposed to be added to.
-        int selectedPlaylist = ListViewPlayListNames.getSelectionModel().getSelectedIndex(); //or getselectedItem?
-
+        int selectedPlaylist = ListViewPlayListNames.getSelectionModel().getSelectedIndex()+1;
+        System.out.println("Selected playlist:"+selectedPlaylist);
         //count all rows in PlaylistContents with the selected playlistId to get the correct songPosition for the new song.
-        DB.selectSQL("SELECT COUNT(fld_SongPosition) FROM tbl_PlaylistContents WHERE fld_PlaylistId='"+selectedPlaylist+"'");
+        DB.selectSQL("SELECT COUNT(fld_SongPosition) FROM tbl_PlaylistContents WHERE fld_PlaylistId="+selectedPlaylist+"");
         String countedSongs = DB.getData();
         int countedSongsConverted = Integer.parseInt(countedSongs);
+        System.out.println(countedSongsConverted);
         int songPosition=countedSongsConverted+1;
-
+        System.out.println(songPosition);
         //get the selected song in the library listview and insert the new song in playlistContents.
-        int selectedSong = ListViewAllSongs.getSelectionModel().getSelectedIndex(); //or getselectedItem?
-        DB.selectSQL("INSERT INTO tbl_PlaylistContents (fld_PlaylistId, fld_SongId, fld_SongPosition) VALUES ('"+selectedPlaylist+"', '"+selectedSong+"', '"+songPosition+"");
+        int selectedSong = ListViewAllSongs.getSelectionModel().getSelectedIndex()+1;
+        System.out.println("Selected song:"+selectedSong);
+        DB.selectSQL("INSERT INTO tbl_PlaylistContents (fld_PlaylistId, fld_SongId, fld_SongPosition) VALUES ("+selectedPlaylist+", "+selectedSong+", "+songPosition+")");
 
+        lastSelectedPlaylistIndex=selectedPlaylist;
         //add the number of songs to fld_NumberOfSongs in tbl_Playlists where fld_PlaylistId=x - is this necessary anymore?
-        DB.selectSQL("UPDATE tbl_Playlists SET fld_NumberOfSongs = "+songPosition+"WHERE fld_PlaylistId="+selectedPlaylist+"");
+        //DB.selectSQL("UPDATE tbl_Playlists SET fld_NumberOfSongs = "+songPosition+"WHERE fld_PlaylistId="+selectedPlaylist+"");
 
+        updatePlaylistContentsInListview();
+        updatePlaylistsInListview();
         System.out.println("Song added to playlist");
     }
 
@@ -178,16 +294,37 @@ public class Controller implements Initializable{
      */
     public void RemoveSongFromPlaylist(){
         //get the selected song in the library listview and insert the new song in playlistContents.
-        int selectedPlaylist = ListViewPlayList.getSelectionModel().getSelectedIndex();
-        int selectedSong = ListViewPlayListNames.getSelectionModel().getSelectedIndex(); //or getselectedItem?
-        DB.selectSQL("DELETE * FROM tbl_PlaylistContents WHERE fld_PlaylistId='"+selectedPlaylist+"' AND fld_SongPosition='"+selectedSong+"'");
+        int selectedPlaylist = ListViewPlayList.getSelectionModel().getSelectedIndex()+1;
+        int selectedSong = ListViewPlayListNames.getSelectionModel().getSelectedIndex()+1;
+        DB.selectSQL("DELETE * FROM tbl_PlaylistContents WHERE fld_PlaylistId="+selectedPlaylist+" AND fld_SongPosition="+selectedSong+"");
 
         //update number of songs in selected playlist - maybe not necessary anymore.
         DB.selectSQL("SELECT COUNT(fld_SongPosition) FROM tbl_PlaylistContents WHERE fld_PlaylistId='"+selectedPlaylist+"'");
         String countedSongs = DB.getData();
         DB.selectSQL("UPDATE tbl_Playlists SET fld_NumberOfSongs = "+countedSongs+"WHERE fld_PlaylistId="+selectedPlaylist+"");
 
+        updatePlaylistContentsInListview();
+        updatePlaylistsInListview();
         System.out.println("Song removed from playlist");
+    }
+
+    public void HandleShuffle(ActionEvent event) {  //not finished.
+        if (shuffle=true){
+            shuffleOff();
+        }
+        else{
+            shuffleOn();
+        }
+    }
+
+    private void shuffleOn() {
+        shuffle = true;
+        Shuffle.setText("Shuffle on");
+    }
+
+    private void shuffleOff() {
+        shuffle = false;
+        Shuffle.setText("Shuffle off");
     }
 
     /**
@@ -198,7 +335,7 @@ public class Controller implements Initializable{
 
     FileChooser fileChooser = new FileChooser();
     File fileToOpen = fileChooser.showOpenDialog(null);
-    path = fileToOpen.toURI().toString();
+        String path = fileToOpen.toURI().toString();
 
     //Checking if path contains something and is not null
         if(path !=null){
@@ -267,9 +404,8 @@ public class Controller implements Initializable{
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         String SongNameData;
-        String PlayListNameData;
-        String PlayListData;
 
+        System.out.print("start...");
         //Select Tbl_Songs from the Database
         DB.selectSQL("Select fld_SongName from tbl_Songs");
 
@@ -284,14 +420,20 @@ public class Controller implements Initializable{
             }
         } while (true);
 
+        updatePlaylistsInListview();
+        updatePlaylistContentsInListview();
+        updateSongLibrary();
+    }
 
 
+    public void updatePlaylistsInListview() {
+        String PlayListNameData;
 
         //Select Tbl_Playlists from the Database
         DB.selectSQL("Select fld_Name from tbl_Playlists");
 
         //Get the data
-        ArrayList<String> PlayListNamesList= new ArrayList<>();
+        ArrayList<String> PlayListNamesList = new ArrayList<>();
         do {
             PlayListNameData = DB.getDisplayData();
             if (PlayListNameData.equals(DB.NOMOREDATA)) {
@@ -301,12 +443,16 @@ public class Controller implements Initializable{
             }
         } while (true);
 
+        ListViewPlayListNames.getItems().setAll(PlayListNamesList);
+    }
 
 
-        //Select Tbl_PlaylistContents from the Database
-        DB.selectSQL("Select fld_SongPosition, fld_SongName from tbl_PlaylistContents");
+    public void updatePlaylistContentsInListview(){
+        String PlayListData;
 
-        //Get the data
+        //Select Tbl_PlaylistContents from the Database and show names from tbl_Songs based on their songIds
+        DB.selectSQL("SELECT fld_SongId FROM tbl_PlaylistContents WHERE fld_PlaylistId="+lastSelectedPlaylistIndex+"");
+                //Get the data
         ArrayList<String> PlayListContentsList= new ArrayList<>();
 
         do {
@@ -318,15 +464,33 @@ public class Controller implements Initializable{
             }
         } while (true);
 
+
+        System.out.println(PlayListContentsList);
     }
 
-    public void PlayMusic(String fileName) {
-        String path = new File("src/sample/media/" + fileName).getAbsolutePath();
-        media = new Media(new File(path).toURI().toString());
-        mediaPlayer = new MediaPlayer(media);
-        mediaView.setMediaPlayer(mediaPlayer);
-        mediaPlayer.play();
 
+
+    public void updateSongLibrary(){
+        String SongPathData;
+
+        //Select Tbl_Path from the Database
+        DB.selectSQL("Select fld_Path from tbl_Songs");
+
+        //Get the data
+        ArrayList<String> SongPathList = new ArrayList<>();
+
+        do {
+            SongPathData = DB.getDisplayData();
+            if (SongPathData.equals(DB.NOMOREDATA)) {
+                break;
+            }
+            else{
+                SongPathList.add(""+SongPathData+"");
+            }
+        } while (true);
+
+
+        System.out.print(SongPathList);
     }
 }
 
